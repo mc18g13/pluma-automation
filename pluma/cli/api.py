@@ -5,13 +5,15 @@ import sys
 import time
 import os
 import json
+from typing import List, Type
 
-from pluma.core.baseclasses import Logger, LogLevel
+from pluma.core.baseclasses import Logger, LogLevel, ReporterBase
 from pluma.core.builder import TestsBuildError,  YoctoCBuilder
 from pluma.test import TestController
 from pluma.cli import PlumaContext, PlumaConfig, TestsConfig, TargetConfig
 from pluma.cli import PythonTestsProvider, ShellTestsProvider, CTestsProvider, \
     DeviceActionProvider
+from pluma.reporting import XRayReporter
 from pkg_resources import get_distribution
 
 from .configpreprocessor import PlumaConfigPreprocessor
@@ -27,6 +29,10 @@ class Pluma:
     def tests_providers() -> list:
         return [PythonTestsProvider(), ShellTestsProvider(),
                 CTestsProvider(), DeviceActionProvider()]
+
+    @staticmethod
+    def reporters() -> List[Type[ReporterBase]]:
+        return [XRayReporter]
 
     @staticmethod
     def run(context: PlumaContext, tests_config: TestsConfig,
@@ -147,7 +153,7 @@ class Pluma:
         default_log = f'pluma-{START_TIMESTAMP}.log'
         context.board.log_file = config.pop_optional(str, 'log', default_log)
 
-        return TestsConfig(config, Pluma.tests_providers())
+        return TestsConfig(config, Pluma.tests_providers(), reporters=Pluma.reporters())
 
     @staticmethod
     def create_results_config(tests_config: TestsConfig) -> ResultsConfig:

@@ -58,6 +58,7 @@ requires = [
     'pytest-xdist',
     'coverage',
     'pyyaml>=5.1',
+    'atlassian-python-api',
     'deprecated'
 ]
 
@@ -71,7 +72,7 @@ setuptools.setup(
     author='Witekio',
     author_email='mwebster@witekio.com',
     description=('Pluma Automation is a test and automation framework for embedded devices, '
-        'with a focus on ease of use.'),
+                 'with a focus on ease of use.'),
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     url='https://github.com/Witekio/pluma-automation/',

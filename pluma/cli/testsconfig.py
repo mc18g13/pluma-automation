@@ -1,9 +1,9 @@
 import os
 import yaml
-from typing import List, Optional, Union, cast
+from typing import List, Optional, Union, cast, Type
 
 from pluma.cli.resultsconfig import ResultsConfig
-from pluma.core.baseclasses import Logger, LogLevel
+from pluma.core.baseclasses import Logger, LogLevel, ReporterBase
 from pluma.test import TestController, TestRunner, TestBase
 from pluma.test.stock.deffuncs import sc_run_n_iterations
 from pluma.cli import Configuration, ConfigurationError, TestsConfigError, TestDefinition,\
@@ -18,7 +18,9 @@ RESULTS_SECTION = 'results'
 
 
 class TestsConfig:
-    def __init__(self, config: Configuration, test_providers: List[TestsProvider]):
+    def __init__(self, config: Configuration, test_providers: List[TestsProvider],
+                 reporters: Optional[List[Type[ReporterBase]]] = None):
+        reporters = reporters or []
         if not config or not isinstance(config, Configuration):
             raise ValueError(
                 f'Null or invalid \'config\', which must be of type \'{Configuration}\'')
@@ -34,8 +36,8 @@ class TestsConfig:
         self.results_config = self.settings_config.pop_optional(Configuration, RESULTS_SECTION,
                                                                 Configuration())
         self.test_providers: List[TestsProvider] = test_providers
-        self.tests: List[TestDefinition] = []
-
+        self.reporters = self._generate_reporters(self.settings_config, reporters)
+        self.tests: List[TestDefinition]
         self.__populate_tests(config)
 
         config.ensure_consumed()
@@ -70,7 +72,8 @@ class TestsConfig:
         controller = TestController(
             testrunner, log_func=log.info,
             verbose_log_func=log.notice,
-            debug_log_func=log.debug
+            debug_log_func=log.debug,
+            event_reporters=self.reporters
         )
 
         iterations = settings.pop_optional(int, 'iterations')
@@ -84,6 +87,35 @@ class TestsConfig:
         self.results_config.ensure_consumed()
 
         return ResultsConfig(path=path)
+
+    @staticmethod
+    def _generate_reporters(settings_config: Configuration,
+                            reporter_types: List[Type[ReporterBase]]) -> List[ReporterBase]:
+        reporters_config = settings_config.pop_optional(dict, 'reporters', {})
+        valid_reporters = {t.configuration_key(): t for t in reporter_types}
+
+        reporters = []
+        for reporter_name, reporter_config in reporters_config.items():
+            if reporter_name not in valid_reporters:
+                raise TestsConfigError(
+                    f'Found invalid reporter name "{reporter_name}". '
+                    f'Valid reporter names are: {", ".join(valid_reporters.keys())}')
+            reporter_type = valid_reporters[reporter_name]
+            try:
+                new_reporter = reporter_type.from_configuration(
+                    Configuration(reporter_config)
+                )
+            except KeyError as key_error:
+                raise TestsConfigError(
+                    f'Error processing config for reporter "{reporter_type.display_name()}": '
+                    f'Missing mandatory attribute {key_error}') from key_error
+            except Exception as ex:
+                raise TestsConfigError(
+                    f'Error processing config for reporter "{reporter_type.display_name()}": {ex}'
+                ) from ex
+            else:
+                reporters.append(new_reporter)
+        return reporters
 
     def __populate_tests(self, tests_config: Configuration):
         self.tests = []

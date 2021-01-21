@@ -81,6 +81,8 @@ class TestController():
         results_processor (:class:`~pluma.test.resultsprocessor.ResultsProcessor`): Processor to
             be used to format test results.
             Defaults to :class:`~pluma.test.resultsprocessor.DefaultResultsProcessor`
+        event_reporters (list[:class:`~pluma.core.reporterbase.ReporterBase`]): List of event-based
+            reporter objects (such as :class:`~pluma.reporting.xrayreporter.XRayReporter`)
 
     Attributes:
         settings (dict): Controls the behaviour of the TestController.
@@ -114,12 +116,13 @@ class TestController():
                  continue_on_fail=True, run_forever=False, condition_check_interval_s=0,
                  setup_n_iterations=None, force_initial_run=False, email_on_except=True,
                  log_func=None, verbose_log_func=None, debug_log_func=None,
-                 results_plotter=None, results_processor=None):
+                 results_plotter=None, results_processor=None, event_reporters=None):
         assert isinstance(testrunner, TestRunner)
 
         self.testrunner = testrunner
         self.setup = setup
         self.report = report
+        self.event_reporters = event_reporters
         self.run_condition = run_condition
 
         self.log_func = log_func or print
@@ -400,7 +403,7 @@ class TestController():
         self._init_iteration()
 
         self.debug_log(f'Running TestRunner: {self.testrunner}')
-        success = self.testrunner.run()
+        success = self.testrunner.run(reporters=self.event_reporters)
 
         self._finalise_iteration(success)
 

@@ -1,13 +1,15 @@
 import traceback
 import time
+from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Union, cast
+from typing import List, Sequence, Union, cast, Optional
 
 from pluma import utils
-from pluma.core.baseclasses import LogLevel, Logger
+from pluma.core.baseclasses import LogLevel, Logger, ReporterBase
 from pluma.core.board import Board
 from pluma.test import TestBase, TestGroup, AbortTesting
 from pluma.test.testgroup import GroupedTest
+from pluma.test import TestBase, AbortTesting, TestGroup
 
 log = Logger()
 
@@ -15,7 +17,7 @@ log = Logger()
 class TestRunnerBase(ABC):
     '''Run a set of tests a single time and collect their settings and saved data'''
 
-    def __init__(self, board: Board = None, tests: Union[TestBase, Iterable[TestBase]] = None,
+    def __init__(self, board: Board = None, tests: Union[TestBase, Sequence[TestBase]] = None,
                  email_on_fail: bool = None, continue_on_fail: bool = None):
         self.board = board
         self.email_on_fail = email_on_fail if email_on_fail is not None else False
@@ -24,7 +26,7 @@ class TestRunnerBase(ABC):
 
         if isinstance(tests, TestBase):
             tests = [tests]
-        elif tests is not None and isinstance(tests, Iterable):
+        elif tests is not None:
             tests = list(tests)
 
         self._test_group = TestGroup(tests=tests)
@@ -33,10 +35,11 @@ class TestRunnerBase(ABC):
         self.data = {}
 
     @abstractmethod
-    def _run(self, tests: Iterable[TestBase]) -> bool:
+    def _run(self, tests: Sequence[TestBase],
+             reporters: Optional[List[ReporterBase]] = None) -> bool:
         '''Run the tests'''
 
-    def run(self) -> bool:
+    def run(self, reporters: Optional[List[ReporterBase]] = None) -> bool:
         '''Run all tasks for all tests. Returns True if all succes and False otherwise'''
         log.log('Running tests')
         self.test_fails = []
@@ -47,7 +50,7 @@ class TestRunnerBase(ABC):
 
         try:
             # Defer the actual test running to classes that inherit this base
-            return self._run(self.tests)
+            return self._run(self.tests, reporters=reporters)
         except Exception as e:
             # Prevent exceptions from leaving test runner
             log.log('Testing aborted', color='red', bold=True, level=LogLevel.IMPORTANT)
@@ -93,7 +96,6 @@ class TestRunnerBase(ABC):
             return False
 
         self.data[str(test)]['tasks']['ran'].append(task_name)
-
         try:
             task_func()
         # If exception is one we deliberately caused, don't handle it
@@ -159,12 +161,20 @@ class TestRunnerBase(ABC):
 class TestRunner(TestRunnerBase):
     '''Run a set of tests sequentially'''
 
-    def _run(self, tests: Iterable[TestBase]) -> bool:
+    def _run(self, tests: Sequence[TestBase],
+             reporters: Optional[List[ReporterBase]] = None) -> bool:
         success = True
 
-        log.debug(f'Running tests: {list(map(str, self.tests))}')
+        if reporters:
+            log.debug(f'Starting reporters: {[r.display_name() for r in reporters]}')
+            ReporterBase.report_session_start(reporters, datetime.now(), tests)
+
+        log.debug(f'Running tests: {[str(t) for t in tests]}')
 
         for test in tests:
+            if reporters:
+                ReporterBase.report_test_start(reporters, datetime.now(), tests, test)
+
             # Print test message
             column_limit = 70
             test_name = utils.resize_string(str(test), column_limit)
@@ -196,7 +206,17 @@ class TestRunner(TestRunnerBase):
             log.release()
             success &= test_success
 
+            if reporters:
+                ReporterBase.report_test_end(reporters, datetime.now(),
+                                             tests, test, test_success, '')
+
             if not success and not self.continue_on_fail:
+                if reporters:
+                    ReporterBase.report_session_end(reporters, datetime.now(), tests)
                 raise AbortTesting('Aborting the execution (stop on failure)')
+
+        if reporters:
+            log.debug(f'Finalizing reporters: {[r.display_name() for r in reporters]}')
+            ReporterBase.report_session_end(reporters, datetime.now(), tests)
 
         return success
