@@ -1,13 +1,13 @@
-from pluma.core.board import Board
 import traceback
 import time
-import re
+import datetime
 from abc import ABC, abstractmethod
 from copy import copy
 from typing import Iterable, Optional, List, Union
 
+from pluma.core.board import Board
 from pluma import utils
-from pluma.core.baseclasses import LogLevel, Logger
+from pluma.core.baseclasses import LogLevel, Logger, ReporterBase
 from pluma.test import TestBase, TestingException, AbortTesting
 
 global_logger = Logger()
@@ -44,10 +44,10 @@ class TestRunnerBase(ABC):
         self.data = {}
 
     @abstractmethod
-    def _run(self, tests: Iterable[TestBase]) -> bool:
+    def _run(self, tests: Iterable[TestBase], reporters: Optional[List[ReporterBase]] = None) -> bool:
         '''Run the tests'''
 
-    def run(self) -> bool:
+    def run(self, reporters: Optional[List[ReporterBase]] = None) -> bool:
         '''Run all tasks for all tests. Returns True if all succes and False otherwise'''
         self.log('Running tests', bold=True)
         self.test_fails = []
@@ -59,13 +59,17 @@ class TestRunnerBase(ABC):
         for test in self.tests:
             self._init_test_data(test)
 
+        if reporters:
+            self.log(f"Running reporters: {[r.display_name() for r in reporters]}", bold=True)
+            start = datetime.datetime.now()
+            ReporterBase.report_session_start(reporters, start, self.tests)
+
         self.log("Running tests: {}".format(
             list(map(str, self.tests))), level=LogLevel.DEBUG)
 
         try:
             # Defer the actual test running to classes that inherit this base
-            self._run(self.tests)
-
+            self._run(self.tests, reporters=reporters)
         # Prevent exceptions from leaving test runner
         except Exception:
             self.log("\n== TESTING ABORTED EARLY ==", color='red', bold=True)
@@ -73,11 +77,13 @@ class TestRunnerBase(ABC):
             self.log("\n== ALL TESTS COMPLETED ==", color='blue', bold=True,
                      level=LogLevel.DEBUG)
 
+        if reporters:
+            end = datetime.datetime.now()
+            self.log(f"Running reporters: {[r.display_name() for r in reporters]}", bold=True)
+            ReporterBase.report_session_end(reporters, end, self.tests)
+
         # Check if any tasks failed
-        if self.test_fails:
-            return False
-        else:
-            return True
+        return not self.test_fails
 
     def __call__(self):
         return self.run()
@@ -144,8 +150,11 @@ class TestRunnerBase(ABC):
 
         return None if not tests else tests[0]
 
-    def _run_tasks(self, tests: Union[TestBase, Iterable[TestBase]],
-                   task_names: Union[str, List[str]]):
+    def _run_tasks(self,
+                   tests: Union[TestBase, Iterable[TestBase]],
+                   task_names: Union[str, List[str]],
+                   reporters: Optional[List[ReporterBase]] = None
+                   ):
         '''Run all tasks in task_names on test in tests if the test has a task with that name'''
         if isinstance(task_names, str):
             task_names = [task_names]
@@ -157,9 +166,9 @@ class TestRunnerBase(ABC):
                            for task in task_names
                            for test in tests
                            if hasattr(test, task)):
-            self._run_task(task, test)
+            self._run_task(task, test, reporters=reporters)
 
-    def _run_task(self, task_name, test: TestBase):
+    def _run_task(self, task_name, test: TestBase, reporters: Optional[List[ReporterBase]] = None):
         '''Run a single task from a test'''
         task_func = getattr(test, task_name, None)
         if not task_func:
@@ -167,6 +176,10 @@ class TestRunnerBase(ABC):
             return
 
         self.data[str(test)]['tasks']['ran'].append(task_name)
+
+        if reporters:
+            start = datetime.datetime.now()
+            ReporterBase.report_test_start(reporters, start, self.tests, test)
 
         # Print test message
         test_message = f'{str(test)} - {task_name}'
@@ -179,6 +192,7 @@ class TestRunnerBase(ABC):
                  level=LogLevel.IMPORTANT, newline=False)
         self.hold_log()
 
+        did_pass = False
         try:
             task_func()
         # If exception is one we deliberately caused, don't handle it
@@ -208,8 +222,14 @@ class TestRunnerBase(ABC):
 
         else:
             self.log('PASS', color='green', level=LogLevel.IMPORTANT, bypass_hold=True)
+            did_pass = True
         finally:
             self.release_log()
+
+            # TODO: report a message from the test?
+            if reporters:
+                end = datetime.datetime.now()
+                ReporterBase.report_test_end(reporters, end, self.tests, test, did_pass, '')
 
     def _handle_failed_task(self, test: TestBase, task_name: str, exception: Exception):
         '''Run any side effects for a task failure, such as writing logs or sending emails'''
@@ -257,19 +277,19 @@ class TestRunnerBase(ABC):
 class TestRunner(TestRunnerBase):
     '''Run a set of tests sequentially'''
 
-    def _run(self, tests: Iterable[TestBase]):
+    def _run(self, tests: Iterable[TestBase], reporters: Optional[List[ReporterBase]] = None):
         self.log('== TESTING MODE: SEQUENTIAL ==', color='blue', bold=True,
                  level=LogLevel.DEBUG)
 
         for test in tests:
             for task_name in self.known_tasks:
-                self._run_tasks(test, task_name)
+                self._run_tasks(test, task_name, reporters=reporters)
 
 
 class TestRunnerParallel(TestRunnerBase):
     '''Run a set of tests in parallel'''
 
-    def _run(self, tests: Iterable[TestBase]):
+    def _run(self, tests: Iterable[TestBase], reporters: Optional[List[ReporterBase]] = None):
         self.log('== TESTING MODE: PARALLEL ==', color='blue', bold=True,
                  level=LogLevel.DEBUG)
-        self._run_tasks(tests, self.known_tasks)
+        self._run_tasks(tests, self.known_tasks, reporters=reporters)
