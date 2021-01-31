@@ -1,3 +1,4 @@
+from pluma.test.testbase import TestBase
 from pluma import __main__
 from pluma.core.dataclasses import SystemContext, Credentials
 from pluma.core.baseclasses import ConsoleBase, ConsoleEngine, MatchResult
@@ -16,10 +17,9 @@ import yaml
 
 from collections import namedtuple
 from pytest import fixture
-from serial import Serial
 from types import ModuleType
 from typing import Dict, Iterable, List, Tuple, Union
-from unittest.mock import MagicMock, patch
+from unittest.mock import Mock, MagicMock, patch
 
 
 class MockConsoleEngine(ConsoleEngine):
