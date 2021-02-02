@@ -1,4 +1,5 @@
 import copy
+from pluma.core.baseclasses.reporterbase import ReporterBase
 import pytest
 from pytest import fixture
 from unittest.mock import MagicMock
@@ -21,10 +22,28 @@ class MockTestsProvider(TestsProvider):
         return []
 
 
-@fixture
-def minimal_testsconfig():
-    return TestsConfig(Configuration(copy.deepcopy(MINIMAL_CONFIG)),
-                       [MockTestsProvider()])
+@pytest.fixture
+def make_mock_reporter_type():
+    def _factory(name, config_keys, raise_ex=False):
+        class MockReporterType(ReporterBase):
+            def __init__(self, arg):
+                self.arg = arg
+
+            @staticmethod
+            def configuration_key() -> str:
+                return name
+
+            @staticmethod
+            def display_name() -> str:
+                return 'Mock Reporter'
+
+            @classmethod
+            def from_configuration(cls, config) -> ReporterBase:
+                if raise_ex:
+                    raise RuntimeError('uh oh')
+                return cls({key: config.pop(bool, key) for key in config_keys})
+        return MockReporterType
+    return _factory
 
 
 def test_TestsConfig_init_should_accept_list_of_providers():
@@ -102,3 +121,86 @@ def test_TestsConfig_tests_from_action_should_return_all_tests():
 def test_TestsConfig_tests_from_action_should_error_if_action_unsupported():
     with pytest.raises(TestsConfigError):
         TestsConfig.tests_from_action('abc', {'some': 'settings'}, {'def': MockTestsProvider})
+
+
+def test_TestConfig__generate_reporters_generates_reporters_from_configuration(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', []), make_mock_reporter_type('reporter_b', [])]
+    config = Configuration({
+        'reporters': {
+            'reporter_a': None,
+            'reporter_b': None
+        }
+    })
+    reporta, reportb = TestsConfig._generate_reporters(config, types)
+    assert reporta.configuration_key() == 'reporter_a'
+    assert reportb.configuration_key() == 'reporter_b'
+
+
+def test_TestConfig_generate_reporters_generates_reporter_from_configuration_with_reporter_config(make_mock_reporter_type):
+    types = [
+        make_mock_reporter_type('reporter_a', ['config_a', 'config_b']),
+        make_mock_reporter_type('reporter_b', [])
+    ]
+    config = Configuration({
+        'reporters': {
+            'reporter_a': {'config_a': True, 'config_b': False},
+            'reporter_b': None
+        }
+    })
+    reporta, reportb = TestsConfig._generate_reporters(config, types)
+    assert reporta.configuration_key() == 'reporter_a'
+    assert reportb.configuration_key() == 'reporter_b'
+    assert reporta.arg == {'config_a': True, 'config_b': False}
+
+
+def test_TestConfig_generate_reporters_generates_no_reporters_from_no_configuration(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', []), make_mock_reporter_type('reporter_b', [])]
+    config = Configuration({})
+    reporters = TestsConfig._generate_reporters(config, types)
+    assert reporters == []
+
+
+def test_TestConfig_generate_reporters_throws_error_with_invalid_reporter(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', [])]
+    config = Configuration({
+        'reporters': {
+            'invalid_reporter': None
+        }
+    })
+    with pytest.raises(TestsConfigError):
+        TestsConfig._generate_reporters(config, types)
+
+
+def test_TestConfig_generate_reporters_throws_error_with_too_few_config_keys(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', ['config_a'])]
+    config = Configuration({
+        'reporters': {
+            'reporter_a': None
+        }
+    })
+    with pytest.raises(TestsConfigError):
+        TestsConfig._generate_reporters(config, types)
+
+
+def test_TestConfig_generate_reporters_throws_error_if_reporter_throws_error(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', [], raise_ex=True)]
+    config = Configuration({
+        'reporters': {
+            'reporter_a': None
+        }
+    })
+    with pytest.raises(TestsConfigError):
+        TestsConfig._generate_reporters(config, types)
+
+
+def test_TestConfig_generates_reporters(make_mock_reporter_type):
+    types = [make_mock_reporter_type('reporter_a', [])]
+    config = copy.deepcopy(MINIMAL_CONFIG)
+    config['settings'] = {
+        'reporters': {
+            'reporter_a': None
+        }
+    }
+    test_config = TestsConfig(Configuration(config), [MockTestsProvider()], reporters=types)
+    assert len(test_config.reporters) == 1
+    assert test_config.reporters[0].configuration_key() == 'reporter_a'

@@ -1,8 +1,8 @@
-from pluma.test.testgroup import GroupedTest
-from pluma.test.testbase import NoopTest
-from unittest.mock import Mock, patch
-from pluma.test import TestRunner, TestBase
 from utils import PlumaOutputMatcher
+from pluma.test import TestRunner, TestBase
+from unittest.mock import MagicMock, Mock, patch
+from pluma.test.testbase import NoopTest
+from pluma.test.testgroup import GroupedTest
 
 
 def test_TestRunner_should_run_setup_task_if_present(mock_board):
@@ -498,3 +498,26 @@ def test_TestRunner_board_should_be_optional():
     )
 
     runner.run()
+
+
+def test_TestRunner_should_run_event_reporters(mock_board):
+    mock_reporter = MagicMock()
+
+    class MyTest1(TestBase):
+        def test_body(self):
+            pass
+
+    class MyTest2(TestBase):
+        def test_body(self):
+            pass
+
+    runner = TestRunner(
+        tests=[MyTest1(mock_board), MyTest2(mock_board)]
+    )
+
+    runner.run(reporters=[mock_reporter])
+
+    mock_reporter._report_session_start.assert_called_once()
+    mock_reporter._report_session_end.assert_called_once()
+    assert mock_reporter._report_test_start.call_count == 2
+    assert mock_reporter._report_test_end.call_count == 2
