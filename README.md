@@ -68,6 +68,12 @@ To use [Uvicorn](https://www.uvicorn.org/)'s CLI directly to run the Pluma serve
 uvicorn pluma.server.app:create_app
 ```
 
+### API Documentation
+
+With the server running the API documentation can be found at `<server_url>/docs`.
+
+E.g. When running locally on default port, docs can be found at http://127.0.0.1:8000/docs.
+
 ## Using the command line interface
 
 This device test framework can be used from a simple command line interface, [`pluma`](pluma/__main__.py), which can be used to easily define and run tests for an embedded device. Running tests can be done simply by running `pluma run`.
