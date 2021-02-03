@@ -50,6 +50,24 @@ make docker-run-privileged PROJECT_DIR=/path/to/my/project PROJECT_SCRIPT=myscri
 Where `PROJECT_DIR` is a directory containing all python scripts needed to run, and `PROJECT_SCRIPT` is the script to run from within that directory.
 For more detailed instructions, see the [Install and Run](./docs/quick-start-guide/2-install-and-run.md) section of Quick Start Guide. Here you'll find instructions on how to run Pluma Automation with Docker.
 
+## Using the Pluma server
+
+*TODO*: Add more info here
+
+Pluma can be run as a service.
+
+To run Pluma's server CLI you can do:
+
+```shell
+pluma-server <args>
+```
+
+To use [Uvicorn](https://www.uvicorn.org/)'s CLI directly to run the Pluma server you can do:
+
+```shell
+uvicorn pluma.server.app:create_app
+```
+
 ## Using the command line interface
 
 This device test framework can be used from a simple command line interface, [`pluma`](pluma/__main__.py), which can be used to easily define and run tests for an embedded device. Running tests can be done simply by running `pluma run`.

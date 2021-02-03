@@ -58,7 +58,9 @@ requires = [
     'pytest-xdist',
     'coverage',
     'pyyaml>=5.1',
-    'deprecated'
+    'deprecated',
+    'fastapi',
+    'uvicorn'
 ]
 
 # dataclasses backport for 3.6
@@ -77,7 +79,10 @@ setuptools.setup(
     url='https://github.com/Witekio/pluma-automation/',
     packages=setuptools.find_packages(),
     entry_points={
-        'console_scripts': ['pluma=pluma.__main__:main'],
+        'console_scripts': [
+            'pluma=pluma.cli.__main__:cli_main',
+            'pluma-server=pluma.server.__main__:server_main'
+        ],
     },
     python_requires='>=3.6',
     install_requires=requires,
