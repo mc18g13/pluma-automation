@@ -6,12 +6,6 @@ if TYPE_CHECKING:
     from pluma.test.testbase import TestBase
     from pluma.cli import Configuration
 
-# TODO: The session parameter should be an instance of a metadata class (such as Session, which
-# is currently WIP) instead of a TestBase iterable.
-# TODO: the result_pass and result_message should be collected into a result object. This result
-# object should also include other possible states for the test (ignored, skipped, etc.)
-# TODO: Should there be a session_result paramter in report_session_end?
-
 
 class ReporterBase(ABC):
     ''' Base class for output and status reporters '''

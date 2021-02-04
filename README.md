@@ -207,6 +207,15 @@ Supported attributes:
   * `iterations: <int>` - Number of times the test sequence is executed
   * `results:`
     * `file: <filename>` - File to save the test results to. Defaults to `pluma-results-<timestamp>.json`
+  * `reporters:` - Places where Pluma should publish the results of the tests.
+    * `xray:` - Report to XRay Cloud. See the [XRay Tutorial](./docs/tutorials/4-2-tutorial-xray.md) for more information.
+      * `jira_project_key: <key>` - JIRA project to publish XRay issues to (ex. `KDJSD`).
+      * `jira_url: <url>` - URL of the JIRA instance to publish XRay issues to (ex. `https://my-company.atlassian.com`).
+      * `jira_username: <username>` - Username to authenticate to JIRA with. It is recommended you use your personal username, or the username of a bot account (ex. `my-user@my-company.com`).
+      * `jira_password: <password>` - Password to authenticate to JIRA with. It is recommended you generate an [API token](https://id.atlassian.com/manage-profile/security/api-tokens#) for this field instead of using the password directly.
+      * `xray_client_id: <client id>` - Client id for the [XRay Cloud API key](https://docs.getxray.app/display/XRAYCLOUD/Global+Settings%3A+API+Keys).
+      * `xray_client_secret: <client secret>` - Client secret for the [XRay Cloud API key](https://docs.getxray.app/display/XRAYCLOUD/Global+Settings%3A+API+Keys).
+      * `test_plan_name: <name>` - Name to use for the generated XRay test plan issue.
 * `sequence:` Ordered list of action to perform. Each elements can be one of [`shell_tests`, `core_test`, `c_tests`]. Elements can be repeated, but test names must be unique.
   * `- core_tests:` Test to be used from the common test suite
     * `include: <list_of_tests>` - Will match exact names, and tests starting from the name used. Full list of tests visible with `pluma tests` commands, and in the plugins folders (from `--plugin` CLI option).
@@ -337,6 +346,7 @@ System features include:
 * [Automated testing framework](docs/tutorials/3-tutorial-test-framework.md)
 * [A Docker container to run your tests in](docs/quick-start-guide/2-install-and-run.md)
 * [Draw a plot of your USB tree](docs/tutorials/2-2-tutorial-usb.md)
+* [XRay Cloud Reporting](docs/tutorials/4-2-tutorial-xray.md)
 * [Email reporting](docs/tutorials/4-1-tutorial-email.md)
 * Flexible and extensible test scheduler
 * Generate test reports with automatically formatted results and graphs
