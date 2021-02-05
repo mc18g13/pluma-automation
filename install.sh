@@ -28,6 +28,13 @@ function add_group {
     fi
 }
 
+function support_android {
+    $SUDO apt install -y --no-install-recommends android-tools-adb
+
+    echo "Adding user to plugdev group (Required for adb control)"
+    add_group plugdev
+}
+
 function support_serial {
     echo "Adding user to dialout group (Required for USB serial control)"
     add_group dialout
@@ -132,10 +139,19 @@ $SUDO apt update && \
 if [ "$answer_all" ==  "n" ]; then
     echo "Skipping optional config..."
 elif [ "$answer_all" ==  "y" ]; then
+    support_android
     support_serial
     support_sdwire
     support_uhubctl
 else
+    echo
+    read -p 'Android adb support required? (y/N): ' require_android
+    if [ "$require_android" == "y" -o "$require_android" == "Y" ]; then
+        support_android
+    else
+	echo "Android adb support not added. Script can be rerun to enable this."
+    fi
+
     echo
     read -p 'USB Serial support required? (Y/n): ' require_serial
     if [ "$require_serial" == "n" -o "$require_serial" == "N" ]; then
