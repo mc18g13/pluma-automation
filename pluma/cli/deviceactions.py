@@ -100,8 +100,9 @@ class SetAction(DeviceActionBase):
             self.board.console = console
 
 
-@DeviceActionRegistry.register('deploy')
-class DeployAction(DeviceActionBase):
+class FileCopyActionBase(DeviceActionBase):
+    '''Base class for file copy actions'''
+
     def __init__(self, board: Board, files: List[str], destination: str, timeout: int = 15):
         super().__init__(board)
         if not isinstance(files, list):
@@ -110,6 +111,12 @@ class DeployAction(DeviceActionBase):
         self.files = files
         self.destination = destination
         self.timeout = timeout
+
+
+@DeviceActionRegistry.register('deploy')
+class DeployAction(FileCopyActionBase):
+    def __init__(self, board: Board, files: List[str], destination: str, timeout: int = 15):
+        super().__init__(board, files=files, destination=destination, timeout=timeout)
 
     def execute(self):
         if not self.board.console.support_file_copy:
@@ -120,6 +127,22 @@ class DeployAction(DeviceActionBase):
             log.log(f'Copying {f} to target device destination {self.destination}')
             self.board.console.copy_to_target(source=f, destination=self.destination,
                                               timeout=self.timeout)
+
+
+@DeviceActionRegistry.register('pull')
+class PullAction(FileCopyActionBase):
+    def __init__(self, board: Board, files: List[str], destination: str, timeout: int = 15):
+        super().__init__(board, files=files, destination=destination, timeout=timeout)
+
+    def execute(self):
+        if not self.board.console.support_file_copy:
+            raise TaskFailed('Cannot pull files, current console does not support file copy. '
+                             'Use or set a different console to be able to pull files (e.g. SSH)')
+
+        for f in self.files:
+            log.log(f'Copying {f} to host device destination {self.destination}')
+            self.board.console.copy_to_host(source=f, destination=self.destination,
+                                            timeout=self.timeout)
 
 
 class ManualDeviceActionBase(DeviceActionBase):

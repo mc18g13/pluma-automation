@@ -6,7 +6,7 @@ from pluma import Board
 from pluma.core.baseclasses import ConsoleBase
 from pluma.test import TaskFailed
 from pluma.cli import DeviceActionRegistry, DeviceActionBase, LoginAction, WaitAction, \
-    WaitForPatternAction, SetAction, DeployAction
+    WaitForPatternAction, SetAction, DeployAction, PullAction
 from utils import nonblocking
 
 
@@ -154,6 +154,44 @@ def test_DeployAction_should_deploy_files(mock_board):
     assert mock_board.console.copy_to_target.call_count == len(files)
     index = 0
     for call in mock_board.console.copy_to_target.call_args_list:
+        assert call[1]['source'] == files[index]
+        assert call[1]['destination'] == destination
+        assert call[1]['timeout'] == timeout
+        index += 1
+
+
+def test_PullAction_constructor_should_work(mock_board):
+    PullAction(board=mock_board, files=['myfile'], destination='there')
+
+
+def test_PullAction_should_error_if_files_is_not_a_list(mock_board):
+    with pytest.raises(ValueError):
+        PullAction(board=mock_board, files='myfile', destination='there')
+
+
+def test_PullAction_should_error_if_console_does_not_support_copy(mock_board):
+    mock_board.console.support_file_copy = False
+    mock_board.console.copy_to_target = MagicMock()
+
+    action = PullAction(board=mock_board, files=['myfile'], destination='there')
+    with pytest.raises(TaskFailed):
+        action.execute()
+
+
+def test_PullAction_should_pull_files(mock_board):
+    mock_board.console.support_file_copy = True
+    mock_board.console.copy_to_host = MagicMock()
+    files = ['/a/abc.so', 'other']
+    destination = '/some/where'
+    timeout = 666
+
+    action = PullAction(board=mock_board, files=files, destination=destination,
+                          timeout=timeout)
+    action.execute()
+
+    assert mock_board.console.copy_to_host.call_count == len(files)
+    index = 0
+    for call in mock_board.console.copy_to_host.call_args_list:
         assert call[1]['source'] == files[index]
         assert call[1]['destination'] == destination
         assert call[1]['timeout'] == timeout

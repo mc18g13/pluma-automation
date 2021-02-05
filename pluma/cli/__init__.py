@@ -10,7 +10,7 @@ from .ctestsprovider import CTestsProvider
 from .deviceactionbase import DeviceActionBase
 from .deviceactionregistry import DeviceActionRegistry
 from .deviceactions import LoginAction, PowerOnAction, PowerOffAction, PowerCycleAction, WaitAction, \
-    WaitForPatternAction, SetAction, DeployAction
+    WaitForPatternAction, SetAction, DeployAction, PullAction
 from .deviceactionprovider import DeviceActionProvider
 from .api import Pluma
 name = "cli"
