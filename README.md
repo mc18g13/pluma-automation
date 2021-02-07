@@ -137,6 +137,21 @@ Supported attributes:
   * `<other_console_name>:`
     * `type: <ssh or serial>` - SSH and serial consoles are supported. You need to add the SSH or serial properties defined above, depending on the type of console used.
 
+* `power:` Define a way to power on/off the device
+  * `soft:` **Default power controller**. Power on/off the device by running a command from the serial or SSH console
+    * `on_cmd: <cmd>` Command used to power On the device. Typically not available, as the device would be powered off
+    * `off_cmd: <cmd>` Command to power off the device
+    * `reboot_cmd: <cmd>` Command used to restart the device
+  * `uhubctl:` Power on/off using [uhubctl](https://github.com/mvp/uhubctl). Must be available on the host system. Best to control USB powered devices using a compatible USB Hub such as the [D-Link USB Hub 7](https://www.amazon.com/D-Link-including-Charging-Adapter-DUB-H7/dp/B0000B0DL7)
+    * `location: <location>` Optional, location of the USB hub. See [uhubctl documentation](https://github.com/mvp/uhubctl#usage) for more details
+    * `port: <port number>` USB port number
+  * `ippower9258:` Control power using the IP Power 9258
+    * `outlet: <outlet number>`
+    * `host: <hostname or IP>`
+    * `port: <network port>`
+    * `login: <login>`
+    * `password: <password>`
+
 * `variables:` User defined variables, substituted in the **tests configuration** (pluma.yml) file only.
   * `my_var: my_value` - A sample variable, usable as `${my_var}`
 
