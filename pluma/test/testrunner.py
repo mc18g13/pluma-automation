@@ -2,7 +2,7 @@ import traceback
 import time
 from datetime import datetime
 from abc import ABC, abstractmethod
-from typing import List, Sequence, Union, cast, Optional
+from typing import Dict, List, Sequence, Union, cast, Optional
 
 from pluma import utils
 from pluma.core.baseclasses import LogLevel, Logger, ReporterBase
@@ -21,7 +21,7 @@ class TestRunnerBase(ABC):
         self.board = board
         self.email_on_fail = email_on_fail if email_on_fail is not None else False
         self.continue_on_fail = continue_on_fail if continue_on_fail is not None else False
-        self.test_fails = []
+        self.test_fails: List[dict] = []
 
         if isinstance(tests, TestBase):
             tests = [tests]
@@ -31,7 +31,7 @@ class TestRunnerBase(ABC):
         self._test_group = TestGroup(tests=tests)
 
         # General purpose data for use globally between tests
-        self.data = {}
+        self.data: Dict[str, dict] = {}
 
     @abstractmethod
     def _run(self, tests: Sequence[TestBase],
