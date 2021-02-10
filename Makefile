@@ -34,7 +34,7 @@ test-coverage:: ## Check the code test coverage. Tests in tests/rpi are ignored 
 		@./tests/scripts/run_tests.sh --coverage
 
 lint:: ## Run linter against Pluma source code
-		pyright flake8
+		flake8
 
 typecheck:: ## Run static type checking against the Pluma source code
 		pyright pluma

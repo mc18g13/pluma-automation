@@ -12,10 +12,10 @@
 #
 import os
 import sys
+from recommonmark.transform import AutoStructify
+
 sys.path.insert(0, os.path.abspath('../../'))
 
-import recommonmark
-from recommonmark.transform import AutoStructify
 
 # -- Project information -----------------------------------------------------
 
@@ -66,8 +66,10 @@ html_theme = 'sphinx_rtd_theme'
 master_doc = 'index'
 
 # Recommonark
+
+
 def setup(app):
     app.add_config_value('recommonmark_config', {
-            'auto_toc_tree_section': 'Contents',
-            }, True)
+        'auto_toc_tree_section': 'Contents',
+    }, True)
     app.add_transform(AutoStructify)
