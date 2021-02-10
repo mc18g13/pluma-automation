@@ -15,10 +15,6 @@ Pluma Automation (formerly Automation Lab) is a tool created by [Witekio](https:
 * As python library, enabling programmatic hardware control of many supported devices to control a board's power, console, storage, and more
   * The main package for library use is named `pluma.core` (accessible as `pluma` top level package).
 
-## Getting Started
-
-Full documentation on [Read The Docs](https://pluma-automation.readthedocs.io/en/latest/)
-
 ## Installation
 
 Pluma Automation can be run natively, or using Docker.
@@ -142,9 +138,9 @@ Supported attributes:
     * `on_cmd: <cmd>` Command used to power On the device. Typically not available, as the device would be powered off
     * `off_cmd: <cmd>` Command to power off the device
     * `reboot_cmd: <cmd>` Command used to restart the device
-  * `uhubctl:` Power on/off using [uhubctl](https://github.com/mvp/uhubctl). Must be available on the host system. Best to control USB powered devices using a compatible USB Hub such as the [D-Link USB Hub 7](https://www.amazon.com/D-Link-including-Charging-Adapter-DUB-H7/dp/B0000B0DL7)
-    * `location: <location>` Optional, location of the USB hub. See [uhubctl documentation](https://github.com/mvp/uhubctl#usage) for more details
+  * `uhubctl:` Power on/off a USB port from a hub using [uhubctl](https://github.com/mvp/uhubctl). `uhubctl` must be installed on the host system. Best option to control USB powered devices, using a compatible USB Hub such as the [D-Link USB Hub 7](https://www.amazon.com/D-Link-including-Charging-Adapter-DUB-H7/dp/B0000B0DL7)
     * `port: <port number>` USB port number
+    * `location: <location>` Optional, location of the USB hub. See [uhubctl documentation](https://github.com/mvp/uhubctl#usage) for more details
   * `ippower9258:` Control power using the IP Power 9258
     * `outlet: <outlet number>`
     * `host: <hostname or IP>`
