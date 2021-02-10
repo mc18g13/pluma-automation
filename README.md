@@ -253,7 +253,11 @@ Supported attributes:
     * `timeout: <timeout_in_seconds>`
   * `- deploy:` Deploy one or more files to the target device, to a specific destination
     * `files: [<file_path>, <file_path>]`
-    * `destination: <device_target_path>` Destination folder
+    * `destination: <target_destination_path>` Destination folder on target
+    * `timeout: <timeout_in_seconds>`
+  * `- pull:` Pull one or more files from the target device, to a specific destination
+    * `files: [<file_path>, <file_path>]`
+    * `destination: <host_destination_path>` Destination folder on host
     * `timeout: <timeout_in_seconds>`
   * `- login:` Attempt to login on the active console. Typically used for Serial
   * `- set:`
