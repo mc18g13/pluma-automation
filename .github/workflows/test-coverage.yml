@@ -3,10 +3,10 @@
 
 name: Test coverage report
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
+on: []
+  # push:
+  #   branches: [ master ]
+  # pull_request:
 
 jobs:
   build:
@@ -30,4 +30,3 @@ jobs:
         make test-coverage
         export CODACY_PROJECT_TOKEN=d253482dac3c4444be5191578c7dd620
         bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
-
