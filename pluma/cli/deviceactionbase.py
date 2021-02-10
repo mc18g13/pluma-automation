@@ -1,6 +1,5 @@
 from abc import abstractmethod
 
-from pluma import Board
 from pluma.test import TestBase
 
 

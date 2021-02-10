@@ -1,10 +1,11 @@
 import os
+from typing import Optional
 import setuptools
 import subprocess
 import sys
 
 
-def git_is_installed():
+def git_is_installed() -> bool:
     try:
         subprocess.check_call(['which', 'git'], stdout=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
@@ -13,25 +14,24 @@ def git_is_installed():
         return True
 
 
-def get_version():
+def get_version() -> Optional[str]:
     ''' Find the current pluma version from git tags using git-describe '''
     if not git_is_installed():
         raise EnvironmentError(
-            '\n\nThe tool "git" must be installed on the system to install '
-            'this package.\n'
-            'See: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git\n'
+            f'{os.linesep*2}Git must be installed on the system.{os.linesep} See: '
+            f'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git{os.linesep}'
         )
 
+    version_str = None
     try:
         version = subprocess.check_output(
             ['git', 'describe', '--tags', '--always', '--match', 'v*.*.*'])
-        version = version.decode('utf-8').strip()
+        version_str = version.decode('utf-8').strip()
     except Exception as e:
-        version = None
         print('Failed to read Git version, possibly because not .git repository'
-              f' is present in this folder. Falling back to "{version}".{os.linesep*2}{str(e)}')
+              f' is present in this folder:{os.linesep*2}{str(e)}')
     finally:
-        return version
+        return version_str
 
 
 readme_file = 'README.md'
@@ -70,9 +70,9 @@ setuptools.setup(
     name='pluma',
     version=get_version(),
     author='Witekio',
-    author_email='mwebster@witekio.com',
-    description=('Pluma Automation is a test and automation framework for embedded devices, '
-                 'with a focus on ease of use.'),
+    author_email='ext.eng-plumadev@witekio.com',
+    description=('Pluma Automation is a test and automation framework for'
+                 'embedded devices, with a focus on ease of use.'),
     long_description=long_description,
     long_description_content_type=long_description_content_type,
     url='https://github.com/Witekio/pluma-automation/',

@@ -185,14 +185,14 @@ class ConfigPreprocessor(ABC):
 class PlumaConfig:
     @staticmethod
     def load_configuration_file(name: str, config_path: str,
-                           preprocessor: Optional[ConfigPreprocessor] = None) -> Configuration:
+                                preprocessor: Optional[ConfigPreprocessor] = None) -> Configuration:
         '''Load a configuration from a yaml file'''
 
         return Configuration(PlumaConfig.load_yaml_file(name, config_path, preprocessor))
 
     @staticmethod
     def load_configuration_yaml_str(name: str, config_yaml: str,
-                           preprocessor: Optional[ConfigPreprocessor] = None) -> Configuration:
+                                    preprocessor: Optional[ConfigPreprocessor] = None) -> Configuration:
         '''Load a configuration from a raw yaml string'''
         return Configuration(PlumaConfig.load_yaml_str(name, config_yaml, preprocessor))
 
