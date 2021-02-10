@@ -18,30 +18,31 @@ jobs:
           WITH_V: true
           DEFAULT_BUMP: patch
 
-  build-and-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
-    runs-on: ubuntu-latest
-    needs: bump-version
-    steps:
-    - uses: actions/checkout@master
-      with:
-        fetch-depth: 0
+  # Disabled publishing on Pypi
+  # build-and-publish:
+  #   name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+  #   runs-on: ubuntu-latest
+  #   needs: bump-version
+  #   steps:
+  #   - uses: actions/checkout@master
+  #     with:
+  #       fetch-depth: 0
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
-      with:
-        python-version: 3.8
-    - name: Install pypa/build
-      run: python3 -m pip install build --user
-    - name: Build a binary wheel and a source tarball
-      run: python -m build --sdist --wheel --outdir dist/
-    - name: Publish distribution 📦 to Test PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        repository_url: https://test.pypi.org/legacy/
-    - name: Publish distribution 📦 to PyPI
-      if: startsWith(github.ref, 'refs/tags')
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+  #   - name: Set up Python 3.8
+  #     uses: actions/setup-python@v1
+  #     with:
+  #       python-version: 3.8
+  #   - name: Install pypa/build
+  #     run: python3 -m pip install build --user
+  #   - name: Build a binary wheel and a source tarball
+  #     run: python -m build --sdist --wheel --outdir dist/
+  #   - name: Publish distribution 📦 to Test PyPI
+  #     uses: pypa/gh-action-pypi-publish@master
+  #     with:
+  #       password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+  #       repository_url: https://test.pypi.org/legacy/
+  #   - name: Publish distribution 📦 to PyPI
+  #     if: startsWith(github.ref, 'refs/tags')
+  #     uses: pypa/gh-action-pypi-publish@master
+  #     with:
+  #       password: ${{ secrets.PYPI_API_TOKEN }}
