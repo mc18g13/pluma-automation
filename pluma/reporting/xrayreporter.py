@@ -116,6 +116,7 @@ class XRayReporter(ReporterBase):
             log.warning(f'Xray reporter got an unrecognized test name {test} on '
                         'report_test_start hook, not reporting it.')
             return
+
         running_test_meta.status = 'EXECUTING'
 
     def _report_test_end(self, time: datetime.datetime, session: Sequence[TestBase], test: TestBase,

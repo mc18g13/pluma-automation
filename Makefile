@@ -33,10 +33,13 @@ test:: ## Run the Pluma Automation tests. Tests in tests/rpi are ignored if not 
 test-coverage:: ## Check the code test coverage. Tests in tests/rpi are ignored if not on Raspberry Pi
 		@./tests/scripts/run_tests.sh --coverage
 
+lint:: ## Run linter against Pluma source code
+		pyright flake8
+
 typecheck:: ## Run static type checking against the Pluma source code
 		pyright pluma
 
-validate:: typecheck test ## Run all checks available
+validate:: lint typecheck test ## Run all checks available
 
 docker-build:: ## Build the docker image
 		@echo Building $(IMAGE_TAG)

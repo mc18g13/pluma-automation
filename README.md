@@ -442,9 +442,12 @@ or a subset of those:
 make test scope=generic/cli
 ```
 
-You can also run the type checker with
+You can also run the linter and type checker respectively with
 
 ```shell
+# If not already done, install devtools
+make install-devtools
+make lint
 make typecheck
 ```
 
