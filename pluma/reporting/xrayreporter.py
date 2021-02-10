@@ -53,6 +53,8 @@ class XRayReporter(ReporterBase):
         self._reporting_session: Optional[_XRayReportingSession] = None
 
     def _push_running_execution_plan_to_xray(self, tests_to_push: List[JiraResult]):
+        assert self._reporting_session
+
         self._reporting_session.execution_key = self._xray_helper.create_or_update_test_execution(
             self._reporting_session.plan,
             self._reporting_session.execution_metadata,
@@ -67,6 +69,8 @@ class XRayReporter(ReporterBase):
                           stopDate=end_time if end_time else start_time + datetime.timedelta(1))
 
     def _get_running_test_meta(self, test: TestBase) -> Optional[JiraResult]:
+        assert self._reporting_session
+
         for test_meta in self._reporting_session.execution_test_metadata:
             if test_meta.name == str(test):
                 return test_meta
@@ -82,19 +86,23 @@ class XRayReporter(ReporterBase):
             # Guess the end date? Apparently it's a "predicted" value
             "finishDate": end_time_str,
         }
+
         self._reporting_session = _XRayReportingSession(
             plan=self._xray_helper.create_or_update_plan(self.test_plan_name, PLUMA_PLAN_TITLE),
             execution_test_metadata=[self._pluma_test_to_jira_test(test, time) for test in session],
             execution_metadata=execution_metadata)
         if self._reporting_session.plan is None:
-            raise RuntimeError(
-                'Unable to create or update the XRay test plan, check your credentials.')
+            raise RuntimeError('Unable to create or update the XRay test plan, '
+                               'check your credentials.')
+
         self._push_running_execution_plan_to_xray(
             self._reporting_session.execution_test_metadata)
 
     def _report_session_end(self, time: datetime.datetime, session):
-        self._reporting_session.execution_metadata["finishDate"] = JiraXrayHelper.date_to_xray_format(
-            time)
+        assert self._reporting_session
+
+        finish_date = JiraXrayHelper.date_to_xray_format(time)
+        self._reporting_session.execution_metadata["finishDate"] = finish_date
         self._push_running_execution_plan_to_xray(self._reporting_session.execution_test_metadata)
         self._reporting_session = None
 
@@ -102,12 +110,11 @@ class XRayReporter(ReporterBase):
         if self._reporting_session is None:
             raise RuntimeError(
                 f'Reporting for test start for test {test} called before session start')
+
         running_test_meta = self._get_running_test_meta(test)
         if running_test_meta is None:
-            log.warning(
-                f'Xray reporter got an unrecognized test name {test} on report_test_start hook, '
-                'not reporting it.'
-            )
+            log.warning(f'Xray reporter got an unrecognized test name {test} on '
+                        'report_test_start hook, not reporting it.')
             return
         running_test_meta.status = 'EXECUTING'
 

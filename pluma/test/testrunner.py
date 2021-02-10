@@ -9,7 +9,6 @@ from pluma.core.baseclasses import LogLevel, Logger, ReporterBase
 from pluma.core.board import Board
 from pluma.test import TestBase, TestGroup, AbortTesting
 from pluma.test.testgroup import GroupedTest
-from pluma.test import TestBase, AbortTesting, TestGroup
 
 log = Logger()
 

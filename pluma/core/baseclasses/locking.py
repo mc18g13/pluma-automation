@@ -20,7 +20,7 @@ class Locking:
 
             d = self
             # use a lambda to produce a bound method
-            mfactory = lambda self, *args, **kw: d(self, *args, **kw)
+            mfactory = lambda self, *args, **kw: d(self, *args, **kw)  # noqa
             mfactory.__name__ = self.fn.__name__
 
             if not self.parent:

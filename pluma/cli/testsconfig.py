@@ -8,7 +8,7 @@ from pluma.test import TestController, TestRunner, TestBase
 from pluma.test.stock.deffuncs import sc_run_n_iterations
 from pluma.cli import Configuration, ConfigurationError, TestsConfigError, TestDefinition,\
     TestsProvider
-from pluma import Board
+from pluma.core import Board
 from pluma.utils.helpers import get_file_and_line
 
 log = Logger()
@@ -236,7 +236,8 @@ class TestsConfig:
                     log.log(description, level=log_level, indent=2)
                 else:
                     file, line = get_file_and_line(test.testclass)
-                    file_loc_string = f'{file}:{line or "unknown"}' if file is not None else 'unknown location'
+                    file_loc_string = (f'{file}:{line or "unknown"}' if file is not None
+                                       else 'unknown location')
                     log.log(f'No description - missing docstring at '
                             f'{file_loc_string} in {test.testclass.__name__}',
                             color='yellow', level=log_level, indent=2)

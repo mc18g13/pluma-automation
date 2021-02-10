@@ -48,7 +48,7 @@ class Configuration:
             self.__raise_error(
                 f'attribute "{attribute}" required', context)
 
-        return value
+        return cast(T, value)
 
     # Type if default is None
     @overload
@@ -192,7 +192,8 @@ class PlumaConfig:
 
     @staticmethod
     def load_configuration_yaml_str(name: str, config_yaml: str,
-                                    preprocessor: Optional[ConfigPreprocessor] = None) -> Configuration:
+                                    preprocessor: Optional[ConfigPreprocessor] = None
+                                    ) -> Configuration:
         '''Load a configuration from a raw yaml string'''
         return Configuration(PlumaConfig.load_yaml_str(name, config_yaml, preprocessor))
 

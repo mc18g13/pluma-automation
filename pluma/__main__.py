@@ -38,10 +38,11 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description='A lightweight automated testing tool for embedded devices.')
     parser.add_argument('command', type=str, nargs='?', choices=COMMANDS, default=RUN_COMMAND,
-                        help=f'command for pluma, defaults to "{RUN_COMMAND}". "{RUN_COMMAND}": Run the tests suite, '
-                        f'"{CHECK_COMMAND}": validate configuration files and tests, '
-                        f'"{TESTS_COMMAND}": list all tests available and selected, '
-                        f'"{CLEAN_COMMAND}": remove logs, toolchains, and built executables')
+                        help=(f'command for pluma, defaults to "{RUN_COMMAND}". '
+                              '"{RUN_COMMAND}": Run the tests suite, '
+                              f'"{CHECK_COMMAND}": validate configuration files and tests, '
+                              f'"{TESTS_COMMAND}": list all tests available and selected, '
+                              f'"{CLEAN_COMMAND}": remove logs, toolchains, and built executables'))
     parser.add_argument(
         '-v', '--verbose', action='store_const', const=True,
         help='prints more information related to tests and progress')

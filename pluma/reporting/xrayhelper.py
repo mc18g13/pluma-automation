@@ -79,7 +79,8 @@ class Xray:
         # logging.debug("sending test definitions to xray")
         xray_token = self.xray_athenticate()
         resp = requests.post(
-            url=f"https://xray.cloud.xpand-it.com//api/v2/import/test/bulk?project={self.project_key}",
+            url=("https://xray.cloud.xpand-it.com//api/v2/import/test/bulk?project="
+                 f"{self.project_key}"),
             auth=_BearerAuth(xray_token),
             headers={'Content-Type': 'application/json'},
             data=json.dumps(bulk_data)
@@ -186,8 +187,9 @@ class JiraXrayHelper:
     def date_to_xray_format(date: datetime) -> str:
         return date.astimezone().replace(microsecond=0).isoformat()
 
-    def __init__(self, project_key: str, jira_url: str, jira_user: str, jira_password: str, xray_client_id: str, xray_client_secret,
-                 force_new_exec=False, can_delete_links=False) -> None:
+    def __init__(self, project_key: str, jira_url: str, jira_user: str, jira_password: str,
+                 xray_client_id: str, xray_client_secret, force_new_exec=False,
+                 can_delete_links=False) -> None:
 
         self.force_new_exec = force_new_exec
         self.can_delete_links = can_delete_links
@@ -224,7 +226,10 @@ class JiraXrayHelper:
             jql = f'project = {self.project_key} AND issuetype = "Test Plan" order by created DESC'
             issues = self.get_issues(
                 jql, fields=["summary", "description"], expand=None)
-            return [JiraTestPlanIssue(summary=e["fields"]["summary"], description=e["fields"]["description"], key=e["key"], project_key=self.project_key) for e in issues]
+            return [JiraTestPlanIssue(summary=e["fields"]["summary"],
+                                      description=e["fields"]["description"],
+                                      key=e["key"],
+                                      project_key=self.project_key) for e in issues]
 
         def find_test_plan(name, existing_test_plans):
             for t in existing_test_plans:
@@ -262,7 +267,8 @@ class JiraXrayHelper:
 
         return plan
 
-    def create_or_update_test_execution(self, plan, xray_test_exec_info, xrays_tests: List[JiraResult], cur_execution_key=None):
+    def create_or_update_test_execution(self, plan, xray_test_exec_info,
+                                        xrays_tests: List[JiraResult], cur_execution_key=None):
 
         @dataclass
         class JiraTestIssue:
@@ -274,17 +280,19 @@ class JiraXrayHelper:
 
         def get_existing_automated_test(project_key):
             # Get all automated tests with description and labels
-            jql = f'project = {project_key} AND issuetype = Test AND labels in (testauto) order by created DESC'
+            jql = (f'project = {project_key} AND issuetype = Test AND labels in (testauto) '
+                   'order by created DESC')
             issues = self.get_issues(
                 jql, fields=["summary", "description", "labels", "issuelinks"], expand=None)
             return [JiraTestIssue(
-                summary=e["fields"]["summary"],
-                description=e["fields"]["description"],
-                key=e["key"],
-                labels=e["fields"]["labels"],
-                requirements={l["outwardIssue"]["key"]: l["id"]
-                              for l in e["fields"]["issuelinks"] if l["type"]["name"] == "Test"}
-            ) for e in issues]
+                summary=issue["fields"]["summary"],
+                description=issue["fields"]["description"],
+                key=issue["key"],
+                labels=issue["fields"]["labels"],
+                requirements={ilink["outwardIssue"]["key"]: ilink["id"]
+                              for ilink in issue["fields"]["issuelinks"]
+                              if ilink["type"]["name"] == "Test"}
+            ) for issue in issues]
 
         def find_by_label_in_existing_tests(label, existing_tests):
             for t in existing_tests:
@@ -316,10 +324,12 @@ class JiraXrayHelper:
         #             self.jira.remove_issue_link(et.requirements[req_key])
         #         else:
         #             pass
-        #             # logging.warning(f'Issue link: "{req_key} is tested by {et.key}" should be removed')
+        #             # logging.warning(f'Issue link: "{req_key} is tested by {et.key}" '
+        #                               'should be removed')
 
         def find_test_execution(project_key, info):
-            jql = f'project = {project_key} AND issuetype = "Test Execution" AND summary ~ "{info["summary"]}"  order by created DESC'
+            jql = (f'project = {project_key} AND issuetype = "Test Execution" AND'
+                   f' summary ~ "{info["summary"]}" order by created DESC')
             issues = self.get_issues(jql, fields=["description"], expand=None)
             for text_exec in issues:
                 if text_exec["fields"]["description"] == info["description"]:
