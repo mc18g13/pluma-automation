@@ -161,6 +161,7 @@ class ManualTestDeviceAction(ManualDeviceActionBase):
 
     def __init__(self, board: Board, message: str, expected: str, name: str = None):
         super().__init__(board, message=message, name=name)
+        self.expected = expected
 
     def execute(self):
         entered = None
@@ -173,7 +174,7 @@ class ManualTestDeviceAction(ManualDeviceActionBase):
         while (entered not in ['y', 'n']):
             log.log(f'{os.linesep}{test_title}:'
                     f'{os.linesep}  > {self.message}'
-                    f'{os.linesep}  > Expected: {self.message}'
+                    f'{os.linesep}  > Expected: {self.expected}'
                     f'{os.linesep}Was the test successful? [y/n]: ',
                     level=LogLevel.INFO, bypass_hold=True, newline=False)
             entered = input().lower()
