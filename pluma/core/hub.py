@@ -82,20 +82,22 @@ class Hub(HardwareBase, USB):
             # Check match list.
             # If the dict array queried DOES NOT HAVE the required
             # field, OR the field HAS A DIFFERENT value, do not match
-            for k, v in filters.items():
-                if not match:
-                    break
-                if k not in d or d[k] != v:
-                    match = False
+            if isinstance(filters, dict):
+                for k, v in filters.items():
+                    if not match:
+                        break
+                    if k not in d or d[k] != v:
+                        match = False
 
             # Check exclude list
             # If the dict array queried HAS the required filed AND
             # the field has the SAME VALUE, do not match
-            for k, v in excludes.items():
-                if not match:
-                    break
-                if k in d and d[k] == v:
-                    match = False
+            if isinstance(excludes, dict):
+                for k, v in excludes.items():
+                    if not match:
+                        break
+                    if k in d and d[k] == v:
+                        match = False
 
             if match:
                 match_vals.append(d)
